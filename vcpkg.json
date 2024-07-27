@@ -1,6 +1,9 @@
 {
   "dependencies": [
-    "alsa",
+    {
+      "name": "alsa",
+      "platform": "!windows"
+    },
     "opengl",
     "sdl2",
     "sdl2-mixer",

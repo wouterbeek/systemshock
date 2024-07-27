@@ -183,7 +183,7 @@ grs_bitmap *_vtext_tab[N_VTEXT_ENTRIES] = {
 // clang-format on
 
 // ptr to stack parms
-ubyte *parm_ptr; //va_list parm_ptr;
+ubyte **parm_ptr; //va_list parm_ptr;
 
 // space for parms to objects
 char parm_data[PARM_DATA_SIZE];

@@ -353,7 +353,7 @@ add_library(2D_LIB ${2D_SRC})
 target_link_libraries(2D_LIB LG_LIB)
 add_library(GR_LIB ${GR_SRC})
 add_library(3D_LIB ${3D_SRC})
-target_link_libraries(3D_LIB m)
+target_link_libraries(3D_LIB OpenGL::GL m)
 add_library(AFILE_LIB ${AFILE_SRC})
 target_link_libraries(AFILE_LIB 2D_LIB RES_LIB)
 add_library(PALETTE_LIB ${PALETTE_SRC})
@@ -361,10 +361,20 @@ add_library(DSTRUCT_LIB ${DSTRUCT_SRC})
 add_library(FIX_LIB ${FIX_SRC})
 target_link_libraries(FIX_LIB LG_LIB m)
 add_library(INPUT_LIB ${INPUT_SRC})
+target_link_libraries(INPUT_LIB PUBLIC
+	# SDL 2
+	$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+	$<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+)
 add_library(LG_LIB ${LG_SRC})
 add_library(RES_LIB ${RES_SRC})
 add_library(RND_LIB ${RND_SRC})
 add_library(UI_LIB ${UI_SRC})
+target_link_libraries(UI_LIB PUBLIC
+	# SDL 2
+	$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+	$<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+)
 add_library(VOX_LIB ${VOX_SRC})
 add_library(FIXPP_LIB ${FIXPP_SRC})
 add_library(EDMS_LIB ${EDMS_SRC})

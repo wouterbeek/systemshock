@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "alsa",
+    "opengl",
+    "sdl2",
+    "sdl2-mixer",
+    "fluidsynth"
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "buildPresets": [
+    {
+      "configurePreset": "posix-conan",
+      "configuration": "Release",
+      "displayName": "Build on POSIX using the default compiler and Conan.",
+      "name": "posix-conan"
+    },
+    {
+      "configurePreset": "posix-vcpkg",
+      "configuration": "Release",
+      "displayName": "Build on POSIX using the default compiler and Vcpkg.",
+      "name": "posix-vcpkg"
+    },
+    {
+      "configurePreset": "windows-conan",
+      "configuration": "Release",
+      "displayName": "Build on Windows using Visual Studio and Conan",
+      "name": "windows-conan"
+    },
+    {
+      "configurePreset": "windows-vcpkg",
+      "configuration": "Release",
+      "displayName": "Build on Windows using Visual Studio and Vcpkg.",
+      "name": "windows-vcpkg"
+    }
+  ],
+  "configurePresets": [
+    {
+      "binaryDir": "${sourceDir}/build/posix/conan/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "/usr"
+      },
+      "displayName": "Configure on POSIX using Ninja and Conan.",
+      "generator": "Ninja",
+      "name": "posix-conan",
+      "toolchainFile": "${sourceDir}/build/posix/conan/conan_toolchain.cmake"
+    },
+    {
+      "binaryDir": "${sourceDir}/build/posix/vcpkg/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "/usr"
+      },
+      "displayName": "Configure on POSIX using Ninja and Vcpkg.",
+      "generator": "Ninja",
+      "name": "posix-vcpkg",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "binaryDir": "${sourceDir}/build/windows/conan/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "displayName": "Configure on Windows using Visual Studio and Conan.",
+      "generator": "Visual Studio 17 2022",
+      "name": "windows-conan",
+      "toolchainFile": "${sourceDir}/build/windows/conan/conan_toolchain.cmake",
+      "toolset": {
+        "strategy": "external",
+        "value": "host=x64"
+      }
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "binaryDir": "${sourceDir}/build/windows/vcpkg/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "displayName": "Configure on Windows using Visual Studio and Vcpkg.",
+      "generator": "Visual Studio 17 2022",
+      "name": "windows-vcpkg",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "toolset": {
+        "strategy": "external",
+        "value": "host=x64"
+      }
+    }
+  ],
+  "testPresets": [
+    {
+      "execution": {
+        "jobs": 10,
+        "timeout": 10
+      },
+      "hidden": true,
+      "name": "generic",
+      "output": {
+        "outputOnFailure": true,
+        "shortProgress": true
+      }
+    },
+    {
+      "configurePreset": "posix-conan",
+	"displayName": "Run tests on POSIX (Conan).",
+      "inherits": "generic",
+      "name": "posix-conan"
+    },
+    {
+      "configurePreset": "posix-vcpkg",
+	"displayName": "Run tests on POSIX (Vcpkg).",
+      "inherits": "generic",
+      "name": "posix-vcpkg"
+    },
+    {
+      "configurePreset": "windows-conan",
+	"displayName": "Run tests on Windows (Conan)",
+      "inherits": "generic",
+      "name": "windows-conan"
+    },
+    {
+      "configurePreset": "windows-vcpkg",
+	"displayName": "Run tests on Windows (Vcpkg).",
+      "inherits": "generic",
+      "name": "windows-vcpkg"
+    }
+  ]
+}

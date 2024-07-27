@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.21)
 
 project(shockolate VERSION 0.7.8)
 
@@ -18,24 +18,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -D__STDC_LIMIT_MACROS")
 
-option(ENABLE_EXAMPLES "Enable example applications" OFF)
-add_feature_info(ENABLE_EXAMPLES ENABLE_EXAMPLES "Enable example application (can be broken!)")
 option(ENABLE_DEBUG_BLIT "Enable debugging blitter" OFF)
 add_feature_info(ENABLE_DEBUG_BLIT ENABLE_DEBUG_BLIT "Enable debugging blitter")
-option(ENABLE_OPENGL "Enable OpenGL support" ON)
-add_feature_info(ENABLE_OPENGL ENABLE_OPENGL "Enable OpenGL support")
-
-set(ENABLE_SDL2 "BUNDLED" CACHE STRING "Enable SDL2 (ON/BUNDLED, default BUNDLED)")
-set_property(CACHE ENABLE_SDL2 PROPERTY STRINGS "ON" "BUNDLED")
-add_feature_info(ENABLE_SDL2 ENABLE_SOUND "Enable SDL2 support")
-
-set(ENABLE_SOUND "BUNDLED" CACHE STRING "Enable sound support (requires SDL2_mixer) (ON/BUNDLED/OFF, default BUNDLED)")
-set_property(CACHE ENABLE_SOUND PROPERTY STRINGS "ON" "BUNDLED" "OFF")
-add_feature_info(ENABLE_SOUND ENABLE_SOUND "Enable sound support (requires SDL2_mixer)")
-
-set(ENABLE_FLUIDSYNTH "BUNDLED" CACHE STRING "Enable FluidSynth MIDI support (ON/BUNDLED/OFF, default BUNDLED)")
-set_property(CACHE ENABLE_FLUIDSYNTH PROPERTY STRINGS "ON" "BUNDLED" "OFF")
-add_feature_info(ENABLE_FLUIDSYNTH ENABLE_FLUIDSYNTH "Enable FluidSynth MIDI support")
 
 # HAAAAX!!
 add_definitions(-DSVGA_SUPPORT)
@@ -46,74 +30,27 @@ endif()
 
 add_compile_options(-fsigned-char -fno-strict-aliasing)
 
-# Find OpenGL
-if(ENABLE_OPENGL)
-	find_package(OpenGL REQUIRED)
-	add_definitions(-DUSE_OPENGL)
-	if(WIN32)
-		list(APPEND OPENGL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/build_ext/built_glew/include)
-		list(APPEND OPENGL_LIBRARIES ${CMAKE_SOURCE_DIR}/build_ext/built_glew/lib/libglew32.dll.a winmm)
-	endif(WIN32)
-endif(ENABLE_OPENGL)
-
-if(ENABLE_SDL2 MATCHES "ON")
-	find_package(SDL2 REQUIRED)
-	if(SDL2_FOUND)
-		message(STATUS "SDL2 found: ${SDL2_INCLUDE_DIRS} ${SDL2_LIBRARIES}")
-	endif(SDL2_FOUND)
-endif(ENABLE_SDL2 MATCHES "ON")
-if(ENABLE_SDL2 MATCHES "BUNDLED")
-	set(SDL2_DIR ${CMAKE_SOURCE_DIR}/build_ext/built_sdl)
-	find_library(SDL2_LIBRARY SDL2 PATHS ${SDL2_DIR}/lib NO_DEFAULT_PATH)
-	find_library(SDL2MAIN_LIBRARY SDL2main PATHS ${SDL2_DIR}/lib NO_DEFAULT_PATH)
-	set(SDL2_INCLUDE_DIRS ${SDL2_DIR}/include/SDL2)
-	set(SDL2_LIBRARIES "${SDL2MAIN_LIBRARY};${SDL2_LIBRARY}")
-endif(ENABLE_SDL2 MATCHES "BUNDLED")
-
-if(ENABLE_SOUND MATCHES "ON")
-	# FIXME applies only for *nix systems
-	find_package(PkgConfig)
-	pkg_check_modules(SDL2_MIXER REQUIRED SDL2_mixer>=2.0.4)
-	add_definitions(-DUSE_SDL_MIXER=1)
-endif(ENABLE_SOUND MATCHES "ON")
-if(ENABLE_SOUND MATCHES "BUNDLED")
-	set(SDL2_MIXER_DIR ${CMAKE_SOURCE_DIR}/build_ext/built_sdl_mixer)
-	set(SDL2_MIXER_INCLUDE_DIRS ${SDL2_MIXER_DIR}/include/SDL2)
-	find_library(SDL2_MIXER_LIBRARY SDL2_mixer PATHS ${SDL2_MIXER_DIR}/lib)
-	set(SDL2_MIXER_LIBRARIES ${SDL2_MIXER_LIBRARY})
-	add_definitions(-DUSE_SDL_MIXER=1)
-endif(ENABLE_SOUND MATCHES "BUNDLED")
-
-if(ENABLE_FLUIDSYNTH MATCHES "ON")
-	find_package(PkgConfig)
-	pkg_check_modules(FLUIDSYNTH REQUIRED fluidsynth)
-	add_definitions("-DUSE_FLUIDSYNTH=1")
-endif(ENABLE_FLUIDSYNTH MATCHES "ON")
-if(ENABLE_FLUIDSYNTH MATCHES "BUNDLED")
-        find_library(FLUIDSYNTH_LIBRARY fluidsynth PATHS ${CMAKE_SOURCE_DIR}/build_ext/fluidsynth-lite/src)
-	set(FLUIDSYNTH_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/build_ext/fluidsynth-lite/include)
-	set(FLUIDSYNTH_LIBRARIES ${FLUIDSYNTH_LIBRARY})
-	add_definitions("-DUSE_FLUIDSYNTH=1")
-endif(ENABLE_FLUIDSYNTH MATCHES "BUNDLED")
-
-include_directories(
-	${SDL2_INCLUDE_DIRS}
-	${SDL2_MIXER_INCLUDE_DIRS}
-	${FLUIDSYNTH_INCLUDE_DIRS}
-	${OPENGL_INCLUDE_DIRS}
-)
-
+# ALSA
 if(NOT WIN32)
-  # Find ALSA for Linux native MIDI
-  # NOTE: this seems to require having 64-bit dev pacakges installed when building
-  #  on 64-bit OS, even when building a 32-bit binary
-  find_package(ALSA)
-  if(ALSA_FOUND)
-      message(STATUS "ALSA found")
-      include_directories(${ALSA_INCLUDE_DIRS})
-      add_definitions(-DUSE_ALSA=1)
-  endif(ALSA_FOUND)
+	find_package(ALSA REQUIRED)
+	add_definitions(-DUSE_ALSA)
 endif(NOT WIN32)
+
+# FluidSynth
+find_package(FluidSynth)
+if(FluidSynth_FOUND)
+	add_definitions(-DUSE_FLUIDSYNTH)
+endif(FluidSynth_FOUND)
+
+# OpenGL
+find_package(OpenGL REQUIRED)
+
+# SDL 2
+find_package(SDL2 REQUIRED)
+
+# SDL 2 Mixer
+find_package(SDL2_mixer REQUIRED)
+add_definitions(-DUSE_SDL_MIXER=1)
 
 # Generate version based on project version
 set(PROJECT_REVERSION_STRING "")
@@ -301,80 +238,6 @@ include_directories(
 	${CMAKE_BINARY_DIR}/src/GameSrc/Headers
 )
 
-if(ENABLE_EXAMPLES)
-
-add_executable(playmov
-	src/Libraries/AFILE/Tests/playmov.c
-)
-add_executable(movinfo
-	src/Libraries/AFILE/Tests/movinfo.c
-)
-
-target_link_libraries(playmov
-	AFILE_LIB
-	FIX_LIB
-	${SDL2_LIBRARIES}
-	${SDL2_MIXER_LIBRARIES}
-)
-
-target_link_libraries(movinfo
-	AFILE_LIB
-	FIX_LIB
-)
-
-add_executable(TestSimpleMain
-	src/Libraries/2D/TestSource/SimpleMain.c
-)
-
-target_link_libraries(TestSimpleMain
-	2D_LIB
-	GR_LIB
-	3D_LIB
-	RES_LIB
-	FIX_LIB
-	LG_LIB
-	${SDL2_LIBRARIES}
-)
-
-add_executable(BoxTest
-	src/Libraries/3D/Tests/BoxTest.c
-)
-
-target_link_libraries(BoxTest
-	2D_LIB
-	GR_LIB
-	3D_LIB
-	RES_LIB
-	FIX_LIB
-	LG_LIB
-	${SDL2_LIBRARIES}
-)
-
-add_executable(BitmapTest
-	src/Libraries/3D/Tests/BitmapTest.c
-)
-
-target_link_libraries(BitmapTest
-	2D_LIB
-	GR_LIB
-	3D_LIB
-	RES_LIB
-	FIX_LIB
-	LG_LIB
-	${SDL2_LIBRARIES}
-)
-
-add_executable(FixTest
-	src/Libraries/FIX/Tests/FixTest/fixtest.c
-)
-
-target_link_libraries(FixTest
-	FIX_LIB
-	LG_LIB
-)
-
-endif()
-
 # Include magic header file, set struct packing size
 add_definitions(
 	-include precompiled.h
@@ -385,6 +248,10 @@ add_executable(systemshock
 )
 
 add_library(GAME_LIB ${GAME_SRC})
+target_link_libraries(GAME_LIB PUBLIC
+	# SDL 2 Mixer
+	$<IF:$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>,SDL2_mixer::SDL2_mixer,SDL2_mixer::SDL2_mixer-static>
+)
 
 # MINGW additional linker options
 if(MINGW)
@@ -393,6 +260,15 @@ endif(MINGW)
 
 target_link_libraries(systemshock
 	${WINDOWS_LIBRARIES} # Set it before any linker options! Beware WinMain@16 error!!
+	# SDL 2
+	$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+	$<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+	# FluidSynth
+	$<$<BOOL:${FluidSynth_FOUND}>:FluidSynth::libfluidsynth>
+	# OpenGL
+	OpenGL::GL
+	# ALSA
+	$<$<NOT:$<BOOL:${WIN32}>>:ALSA::ALSA>
 	GAME_LIB
 	UI_LIB
 	2D_LIB
@@ -411,11 +287,6 @@ target_link_libraries(systemshock
 	EDMS_LIB
 	FIXPP_LIB
 	ADLMIDI_LIB
-	${SDL2_LIBRARIES}
-	${SDL2_MIXER_LIBRARIES}
-	${FLUIDSYNTH_LIBRARIES}
-	${OPENGL_LIBRARIES}
-	${ALSA_LIBRARIES}
 )
 
 # Turn on address sanitizing if wanted

@@ -10,5 +10,5 @@ class SystemShockRecipe(ConanFile):
     if self.settings.os != "Windows":
       self.requires("libalsa/1.2.10")
     self.requires("opengl/system")
-    self.requires("sdl/2.28.5") # sdl_mixer/2.8.0 currently conflicts with sdl/2.30.5
+    self.requires("sdl/2.28.5") # sdl_mixer/2.8.0 currently conflicts with sdl/2.30.6
     self.requires("sdl_mixer/2.8.0")
